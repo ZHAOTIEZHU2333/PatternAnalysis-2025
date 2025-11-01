@@ -61,7 +61,7 @@ The general GCN process can be summarized as:
 3. Each layer aggregates neighbor information and applies nonlinear activation (e.g., ReLU).
 4. After several layers, node embeddings encode both their own features and the surrounding graph structure.
 
-![](figs/GCN_overview.png)
+![](outputs/GCN_overview.png)
 
 ### Model Architecture Diagram
 Below is the schematic diagram of the GCN model used in this project.
