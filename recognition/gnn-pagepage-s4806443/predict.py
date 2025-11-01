@@ -80,3 +80,64 @@ def tsne_plot(model, x, A_norm, y, save_path: Path, sample_per_class=400, seed=4
     save_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(save_path, dpi=200, bbox_inches="tight")
     plt.close()
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data_dir", required=True,
+                    help="Directory with feats.npy / labels.npy / edge_index.npy")
+    ap.add_argument("--ckpt", default="recognition/gnn-pagepage-s4806443/outputs/ckpts/best.pt",
+                    help="Checkpoint to load (.pt)")
+    ap.add_argument("--fig_dir", default="recognition/gnn-pagepage-s4806443/figs",
+                    help="Where to save figures")
+    ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    ap.add_argument("--hidden", type=int, default=128, help="Hidden dim (must match training)")
+    ap.add_argument("--dropout", type=float, default=0.5, help="Dropout (must match training)")
+    ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--no_tsne", action="store_true", help="Disable t-SNE plotting")
+    ap.add_argument("--sample_per_class", type=int, default=400, help="t-SNE per-class sample cap")
+    args = ap.parse_args()
+
+    device = torch.device(args.device)
+    figdir = Path(args.fig_dir); figdir.mkdir(parents=True, exist_ok=True)
+
+    # 1) Load tensors & masks
+    x, y, edge_index, train_m, val_m, test_m = load_pagepage(
+        data_dir=args.data_dir, device=device, ensure_undirected=False
+    )
+    N, Fdim = x.size(0), x.size(1)
+    C = int(y.max().item() + 1)
+    print(f"[Data] N={N} F={Fdim} C={C} test={int(test_m.sum())}")
+
+    # 2) Build normalized adjacency (undirected + self-loops)
+    A_norm = build_gcn_norm(
+        edge_index=edge_index, num_nodes=N, add_loops=True, make_undirected=True, device=device
+    )
+
+    # 3) Build model and load checkpoint
+    model = GCN(in_dim=Fdim, hidden_dim=args.hidden, out_dim=C, dropout=args.dropout).to(device)
+    state = torch.load(args.ckpt, map_location=device)
+    model.load_state_dict(state)
+    print(f"[Load] checkpoint <- {args.ckpt}")
+
+    # 4) Evaluate on test set
+    te_loss, te_acc, te_pred = evaluate(model, x, A_norm, y, test_m)
+    y_true = y[test_m].detach().cpu().numpy()
+    y_pred = te_pred[test_m].detach().cpu().numpy()
+    macro_f1 = f1_score(y_true, y_pred, average="macro")
+    print(f"[Test] acc={te_acc:.4f} loss={te_loss:.4f} macro-F1={macro_f1:.4f}")
+
+    # 5) Save confusion matrix
+    plot_confusion(y_true, y_pred, figdir / "confusion_matrix.png")
+
+    # 6) Optional t-SNE
+    if not args.no_tsne:
+        tsne_plot(model, x, A_norm, y, figdir / "tsne.png",
+                  sample_per_class=args.sample_per_class, seed=args.seed)
+        print(f"[Save] figs -> {figdir/'confusion_matrix.png'}, {figdir/'tsne.png'}")
+    else:
+        print(f"[Save] figs -> {figdir/'confusion_matrix.png'} (t-SNE disabled)")
+
+
+if __name__ == "__main__":
+    main()
