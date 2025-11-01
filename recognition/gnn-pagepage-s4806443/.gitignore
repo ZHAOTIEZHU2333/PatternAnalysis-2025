@@ -1,0 +1,8 @@
+data/
+*.npy
+*.pt
+*.pth
+*.ckpt
+outputs/
+runs/
+.DS_Store
