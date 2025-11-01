@@ -65,7 +65,7 @@ The general GCN process can be summarized as:
 ### Model Architecture Diagram
 Below is the schematic diagram of the GCN model used in this project.
 
-![](outputs/GCN_model_structure.png)
+![](figs/GCN_model_structure.png)
 
 A **two-layer GCN** was implemented in `modules.py`:
 ```
