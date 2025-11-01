@@ -98,8 +98,8 @@ def load_pagepage(
         ei = edge_index.cpu().numpy().T           # [E, 2]
         ei_rev = ei[:, ::-1]
         both = np.concatenate([ei, ei_rev], axis=0)
-        both_view = both.view([('', both.dtype)] * 2)  # structured view for unique
-        uniq = np.unique(both_view, axis=0).view(both.dtype).reshape(-1, 2)
+        both = np.ascontiguousarray(both)
+        uniq = np.unique(both, axis=0)            # [E_uniq, 2]
         edge_index = torch.from_numpy(uniq.T.astype(np.int64, copy=False))
 
     tm = os.path.join(data_dir, "train_mask.npy")
@@ -126,3 +126,10 @@ def load_pagepage(
     test_mask  = torch.from_numpy(test_mask_np).to(device)
 
     return x, y, edge_index, train_mask, val_mask, test_mask
+
+
+
+
+
+
+
