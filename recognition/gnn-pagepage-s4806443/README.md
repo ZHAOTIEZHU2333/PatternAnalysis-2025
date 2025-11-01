@@ -1,0 +1,138 @@
+
+
+# Graph Neural Network on Facebook Large Page-Page Network  
+**COMP3710 Pattern Analysis Project — Topic Recognition**
+
+---
+
+## 1. Project Overview
+This project implements a two-layer Graph Convolutional Network (GCN) to perform semi-supervised multi-class node classification on the **Facebook Large Page-Page Network dataset**.  
+The model learns to predict the category of Facebook pages (nodes) based on both their node features and network structure.
+
+- **Task:** Semi-supervised node classification  
+- **Dataset:** Facebook Large Page-Page Network (SNAP)  
+- **Classes:** 4  
+- **Difficulty Level:** Normal  
+- **Language/Framework:** Python (PyTorch)
+
+---
+
+## 2. Dataset Description
+| File | Description | Shape |
+|------|--------------|-------|
+| `feats.npy` | Node feature matrix | (22470, 4714) |
+| `labels.npy` | Node labels (0–3) | (22470,) |
+| `edge_index.npy` | Graph edges (source, target) | (2, 171002) |
+
+- Each node represents a Facebook page.  
+- Each edge indicates a mutual "like" relationship.  
+- Semi-supervised splits: **60% train**, **20% val**, **20% test** (stratified).
+
+---
+
+## 3. Model Architecture
+A **two-layer GCN** was implemented in `modules.py`:
+```
+Input → GCNConv(4714→128) → ReLU → Dropout(0.5) → GCNConv(128→4)
+```
+- Adjacency normalization: D^(-1/2)(A+I)D^(-1/2)
+- Loss: CrossEntropyLoss
+- Optimizer: Adam (lr=0.01, weight_decay=5e-4)
+- Early stopping with patience = 50 epochs
+
+---
+
+## 4. Training Configuration
+| Parameter | Value |
+|------------|--------|
+| Hidden units | 128 |
+| Dropout | 0.5 |
+| Learning rate | 0.01 |
+| Weight decay | 5e-4 |
+| Epochs | 1000 |
+| Patience | 50 |
+
+Run command:
+```bash
+python recognition/gnn-pagepage-s4806443/train.py \
+  --data_dir recognition/gnn-pagepage-s4806443 \
+  --device cpu
+```
+
+---
+
+## 5. Evaluation
+After training, the best model checkpoint (`best.pt`) was used for testing and visualization.
+
+Run command:
+```bash
+python recognition/gnn-pagepage-s4806443/predict.py \
+  --data_dir recognition/gnn-pagepage-s4806443 \
+  --ckpt recognition/gnn-pagepage-s4806443/outputs/ckpts/best.pt \
+  --device cpu
+```
+
+| Metric | Value |
+|---------|--------|
+| Test Accuracy | **0.9524** |
+| Test Loss | **0.1770** |
+| Macro-F1 | **0.9503** |
+| Early Stopped | Epoch 223 |
+
+---
+
+## 6. Results and Visualizations
+### • Training Curves
+![](figs/loss_curve.png)  
+![](figs/acc_curve.png)
+
+### • Confusion Matrix
+![](figs/confusion_matrix.png)
+
+### • t-SNE Visualization
+![](figs/tsne.png)
+
+---
+
+## 7. Discussion
+- The model achieved **>95% accuracy**, demonstrating effective feature propagation and class separation.  
+- t-SNE embeddings show distinct clusters, confirming that GCN learned meaningful latent representations.  
+- Misclassifications mainly occurred between visually similar or densely connected categories.  
+- Future improvements:
+  - Experiment with GraphSAGE / GAT for inductive generalization.
+  - Hyperparameter tuning (hidden size, dropout, learning rate).
+  - Deeper GNN architectures or self-loop weighting.
+
+---
+
+## 8. File Structure
+```
+recognition/gnn-pagepage-s4806443/
+├── dataset.py
+├── modules.py
+├── train.py
+├── predict.py
+├── figs/
+│   ├── loss_curve.png
+│   ├── acc_curve.png
+│   ├── confusion_matrix.png
+│   └── tsne.png
+└── outputs/
+    └── ckpts/
+        └── best.pt
+```
+
+---
+
+## 9. How to Reproduce
+1. Download and place dataset files (`feats.npy`, `labels.npy`, `edge_index.npy`) in the project directory.  
+2. Run training and evaluation commands above.  
+3. All results will be saved under:
+   - `outputs/ckpts/best.pt`
+   - `figs/*.png`
+
+---
+
+## 10. References
+- Kipf, T. N., & Welling, M. (2017). *Semi-Supervised Classification with Graph Convolutional Networks.* ICLR.  
+- SNAP Dataset: https://snap.stanford.edu/data/facebook-large-page-page-network.html
