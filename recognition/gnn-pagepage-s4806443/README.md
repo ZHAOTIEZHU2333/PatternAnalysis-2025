@@ -1,6 +1,20 @@
 # Graph Neural Network on Facebook Large Page-Page Network  
 **COMP3710 Pattern Analysis Project — Topic Recognition**
 
+## Table of Contents
+1. [Project Overview](#1-project-overview)
+2. [Dependencies](#2-dependencies)
+3. [Files](#3-files)
+4. [Dataset Description](#4-dataset-description)
+5. [Model Architecture](#5-model-architecture)
+6. [Training Configuration](#6-training-configuration)
+7. [Evaluation](#7-evaluation)
+8. [Results and Visualizations](#8-results-and-visualizations)
+9. [Discussion](#9-discussion)
+10. [File Structure](#10-file-structure)
+11. [Usage Example and Reproduction Guide](#11-usage-example-and-reproduction-guide)
+12. [References](#12-references)
+
 ---
 
 ## 1. Project Overview
@@ -215,11 +229,6 @@ recognition/gnn-pagepage-s4806443/
 ```
 
 You can open these images directly in VS Code or any image viewer to verify the output.
-
----
-
-### Step 5: Export and Submit
-Export the README as a PDF including all visualisations and submit it to Turnitin as required for the COMP3710 Pattern Analysis Project.
 
 ---
 
