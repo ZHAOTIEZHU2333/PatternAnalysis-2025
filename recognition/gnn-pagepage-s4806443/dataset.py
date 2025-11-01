@@ -37,3 +37,34 @@ def load_edge_index(data_dir: str, device: torch.device) -> torch.LongTensor:
         return torch.from_numpy(edges.T.astype(np.int64, copy=False)).to(device)
 
     raise FileNotFoundError(f"Neither `edge_index.npy` nor `edges.txt` found under: {data_dir}")
+
+def stratified_masks(
+    y: np.ndarray,
+    train_ratio: float = 0.6,
+    val_ratio: float = 0.2,
+    seed: int = 42,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Build boolean train/val/test masks with per-class stratification.
+    """
+    if train_ratio <= 0 or val_ratio < 0 or train_ratio + val_ratio >= 1.0:
+        raise ValueError("Require 0 < train_ratio, 0 <= val_ratio and train_ratio + val_ratio < 1.")
+
+    rng = np.random.default_rng(seed)
+    n = y.shape[0]
+    train = np.zeros(n, dtype=bool)
+    val = np.zeros(n, dtype=bool)
+    test = np.zeros(n, dtype=bool)
+
+    for c in np.unique(y):
+        idx = np.where(y == c)[0]
+        rng.shuffle(idx)
+        n_train = min(int(round(len(idx) * train_ratio)), len(idx))
+        n_val   = min(int(round(len(idx) * val_ratio)),  max(0, len(idx) - n_train))
+        train[idx[:n_train]] = True
+        val[idx[n_train:n_train+n_val]] = True
+        test[idx[n_train+n_val:]] = True
+
+    assert not (train & val).any() and not (train & test).any() and not (val & test).any(), "Masks must be disjoint."
+    assert (train | val | test).all(), "Every sample must belong to one of the splits."
+    return train, val, test
