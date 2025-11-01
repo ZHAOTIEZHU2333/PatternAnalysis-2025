@@ -134,6 +134,7 @@ python recognition/gnn-pagepage-s4806443/predict.py \
 - The model achieved **>95% accuracy**, demonstrating effective feature propagation and class separation.  
 - t-SNE embeddings show distinct clusters, confirming that GCN learned meaningful latent representations.  
 - Misclassifications mainly occurred between visually similar or densely connected categories.  
+- The early stopping mechanism prevented overfitting by monitoring validation accuracy with a patience of 50 epochs.
 - Future improvements:
   - Experiment with GraphSAGE / GAT for inductive generalization.
   - Hyperparameter tuning (hidden size, dropout, learning rate).
@@ -160,12 +161,65 @@ recognition/gnn-pagepage-s4806443/
 
 ---
 
-## 11. How to Reproduce
-1. Download and place dataset files (`feats.npy`, `labels.npy`, `edge_index.npy`) in the project directory.  
-2. Run training and evaluation commands above.  
-3. All results will be saved under:
-   - `outputs/ckpts/best.pt`
-   - `figs/*.png`
+## 11. Usage Example and Reproduction Guide
+
+This section provides a step-by-step guide to reproduce the results and visualize the model performance.
+
+---
+
+### Step 1: Prepare Dataset
+Download and place the three required dataset files (`feats.npy`, `labels.npy`, `edge_index.npy`) in:
+```
+recognition/gnn-pagepage-s4806443/
+```
+These files correspond to node features, labels, and graph edges respectively.
+
+---
+
+### Step 2: Train the Model
+To train the Graph Convolutional Network, run:
+```bash
+python recognition/gnn-pagepage-s4806443/train.py \
+  --data_dir recognition/gnn-pagepage-s4806443 \
+  --device cpu
+```
+This command will start training and automatically perform early stopping based on validation accuracy.
+
+---
+
+### Step 3: Evaluate and Generate Visualisations
+After training, evaluate the model and generate visualisations using:
+```bash
+python recognition/gnn-pagepage-s4806443/predict.py \
+  --data_dir recognition/gnn-pagepage-s4806443 \
+  --ckpt recognition/gnn-pagepage-s4806443/outputs/ckpts/best.pt \
+  --device cpu
+```
+This step produces:
+- `figs/loss_curve.png` and `figs/acc_curve.png` — Training and validation performance  
+- `figs/confusion_matrix.png` — Confusion matrix of classification results  
+- `figs/tsne.png` — t-SNE embedding of node features
+
+---
+
+### Step 4: View Results
+All results are saved automatically in:
+```
+recognition/gnn-pagepage-s4806443/
+├── outputs/ckpts/best.pt
+└── figs/
+    ├── loss_curve.png
+    ├── acc_curve.png
+    ├── confusion_matrix.png
+    └── tsne.png
+```
+
+You can open these images directly in VS Code or any image viewer to verify the output.
+
+---
+
+### Step 5: Export and Submit
+Export the README as a PDF including all visualisations and submit it to Turnitin as required for the COMP3710 Pattern Analysis Project.
 
 ---
 
