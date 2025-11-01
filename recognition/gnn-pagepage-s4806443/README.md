@@ -1,5 +1,3 @@
-
-
 # Graph Neural Network on Facebook Large Page-Page Network  
 **COMP3710 Pattern Analysis Project — Topic Recognition**
 
@@ -27,6 +25,28 @@ The model learns to predict the category of Facebook pages (nodes) based on both
 - Each node represents a Facebook page.  
 - Each edge indicates a mutual "like" relationship.  
 - Semi-supervised splits: **60% train**, **20% val**, **20% test** (stratified).
+
+---
+
+## Dependencies
+- python 3.11
+- pytorch 2.4.1
+- pytorch geometric 2.4
+- matplotlib
+- numpy
+- scipy
+- networkx
+
+---
+
+## Files
+- `dataset.py`: Contains the data loader for loading and preprocessing the Facebook Large Page-Page (FLPP) Network dataset.
+- `modules.py`: Contains the source code for the GNN model components.
+- `train.py`: Contains the source code for training, validating, testing and saving the model. The model is imported from “modules.py” and the data loader is imported from “dataset.py”. Losses and metrics are plotted during training.
+- `predict.py`: Runs inference on the trained GNN classification model. Prints out results and provides visualisations of TSNE embeddings.
+- `runner.sh`: (Optional) SLURM shell script for training model.
+- `tests.py`: (Optional) Unit tests for python files.
+- `gnn_classifier.csv`: (Optional) Output csv at each epoch of model training.
 
 ---
 
@@ -136,3 +156,5 @@ recognition/gnn-pagepage-s4806443/
 ## 10. References
 - Kipf, T. N., & Welling, M. (2017). *Semi-Supervised Classification with Graph Convolutional Networks.* ICLR.  
 - SNAP Dataset: https://snap.stanford.edu/data/facebook-large-page-page-network.html
+
+---
