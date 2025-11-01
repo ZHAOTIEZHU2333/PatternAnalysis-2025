@@ -79,3 +79,47 @@ def build_gcn_norm(
     idx = A.indices()
     val = A.values() * d_inv_sqrt[idx[0]] * d_inv_sqrt[idx[1]]
     return torch.sparse_coo_tensor(idx, val, size=A.size()).coalesce()
+
+
+
+
+# -----------------------------
+# Layers and Networks
+# -----------------------------
+class GCNConv(nn.Module):
+    """Single GCN layer: X' = Ĥ X W (bias optional)."""
+    def __init__(self, in_dim: int, out_dim: int, bias: bool = False):
+        super().__init__()
+        self.lin = nn.Linear(in_dim, out_dim, bias=bias)
+        # Good defaults
+        nn.init.kaiming_uniform_(self.lin.weight, a=math.sqrt(5))
+        if bias:
+            nn.init.zeros_(self.lin.bias)
+
+    def forward(self, x: torch.Tensor, A_norm: torch.sparse.FloatTensor) -> torch.Tensor:
+        # Graph propagation first, then linear (the other order also works; keep consistent)
+        x = torch.sparse.mm(A_norm, x)  # [N, F]
+        return self.lin(x)
+
+
+class GCN(nn.Module):
+    """
+    Two-layer GCN with ReLU + Dropout.
+    forward(x, A_norm, return_hidden=False) -> logits (and optional hidden)
+    """
+    def __init__(self, in_dim: int, hidden_dim: int, out_dim: int, dropout: float = 0.5):
+        super().__init__()
+        self.gcn1 = GCNConv(in_dim, hidden_dim, bias=False)
+        self.gcn2 = GCNConv(hidden_dim, out_dim,   bias=False)
+        self.dropout = nn.Dropout(dropout)
+        # Second layer uses Xavier to stabilize logits
+        nn.init.xavier_uniform_(self.gcn2.lin.weight)
+
+    def forward(self, x: torch.Tensor, A_norm: torch.sparse.FloatTensor, *, return_hidden: bool = False):
+        h1 = self.gcn1(x, A_norm)
+        h1 = F.relu(h1)
+        h1 = self.dropout(h1)
+        h2 = self.gcn2(h1, A_norm)
+        if return_hidden:
+            return h2, h1.detach()
+        return h2
