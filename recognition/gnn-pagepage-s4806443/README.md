@@ -15,7 +15,29 @@ The model learns to predict the category of Facebook pages (nodes) based on both
 
 ---
 
-## 2. Dataset Description
+## 2. Dependencies
+- python 3.11
+- pytorch 2.4.1
+- pytorch geometric 2.4
+- matplotlib
+- numpy
+- scipy
+- networkx
+
+---
+
+## 3. Files
+- `dataset.py`: Contains the data loader for loading and preprocessing the Facebook Large Page-Page (FLPP) Network dataset.
+- `modules.py`: Contains the source code for the GNN model components.
+- `train.py`: Contains the source code for training, validating, testing and saving the model. The model is imported from “modules.py” and the data loader is imported from “dataset.py”. Losses and metrics are plotted during training.
+- `predict.py`: Runs inference on the trained GNN classification model. Prints out results and provides visualisations of TSNE embeddings.
+- `runner.sh`: (Optional) SLURM shell script for training model.
+- `tests.py`: (Optional) Unit tests for python files.
+- `gnn_classifier.csv`: (Optional) Output csv at each epoch of model training.
+
+---
+
+## 4. Dataset Description
 | File | Description | Shape |
 |------|--------------|-------|
 | `feats.npy` | Node feature matrix | (22470, 4714) |
@@ -28,29 +50,7 @@ The model learns to predict the category of Facebook pages (nodes) based on both
 
 ---
 
-## Dependencies
-- python 3.11
-- pytorch 2.4.1
-- pytorch geometric 2.4
-- matplotlib
-- numpy
-- scipy
-- networkx
-
----
-
-## Files
-- `dataset.py`: Contains the data loader for loading and preprocessing the Facebook Large Page-Page (FLPP) Network dataset.
-- `modules.py`: Contains the source code for the GNN model components.
-- `train.py`: Contains the source code for training, validating, testing and saving the model. The model is imported from “modules.py” and the data loader is imported from “dataset.py”. Losses and metrics are plotted during training.
-- `predict.py`: Runs inference on the trained GNN classification model. Prints out results and provides visualisations of TSNE embeddings.
-- `runner.sh`: (Optional) SLURM shell script for training model.
-- `tests.py`: (Optional) Unit tests for python files.
-- `gnn_classifier.csv`: (Optional) Output csv at each epoch of model training.
-
----
-
-## 3. Model Architecture
+## 5. Model Architecture
 A **two-layer GCN** was implemented in `modules.py`:
 ```
 Input → GCNConv(4714→128) → ReLU → Dropout(0.5) → GCNConv(128→4)
@@ -62,7 +62,7 @@ Input → GCNConv(4714→128) → ReLU → Dropout(0.5) → GCNConv(128→4)
 
 ---
 
-## 4. Training Configuration
+## 6. Training Configuration
 | Parameter | Value |
 |------------|--------|
 | Hidden units | 128 |
@@ -81,7 +81,7 @@ python recognition/gnn-pagepage-s4806443/train.py \
 
 ---
 
-## 5. Evaluation
+## 7. Evaluation
 After training, the best model checkpoint (`best.pt`) was used for testing and visualization.
 
 Run command:
@@ -101,7 +101,7 @@ python recognition/gnn-pagepage-s4806443/predict.py \
 
 ---
 
-## 6. Results and Visualizations
+## 8. Results and Visualizations
 ### • Training Curves
 ![](figs/loss_curve.png)  
 ![](figs/acc_curve.png)
@@ -114,7 +114,7 @@ python recognition/gnn-pagepage-s4806443/predict.py \
 
 ---
 
-## 7. Discussion
+## 9. Discussion
 - The model achieved **>95% accuracy**, demonstrating effective feature propagation and class separation.  
 - t-SNE embeddings show distinct clusters, confirming that GCN learned meaningful latent representations.  
 - Misclassifications mainly occurred between visually similar or densely connected categories.  
@@ -125,7 +125,7 @@ python recognition/gnn-pagepage-s4806443/predict.py \
 
 ---
 
-## 8. File Structure
+## 10. File Structure
 ```
 recognition/gnn-pagepage-s4806443/
 ├── dataset.py
@@ -144,7 +144,7 @@ recognition/gnn-pagepage-s4806443/
 
 ---
 
-## 9. How to Reproduce
+## 11. How to Reproduce
 1. Download and place dataset files (`feats.npy`, `labels.npy`, `edge_index.npy`) in the project directory.  
 2. Run training and evaluation commands above.  
 3. All results will be saved under:
@@ -153,7 +153,7 @@ recognition/gnn-pagepage-s4806443/
 
 ---
 
-## 10. References
+## 12. References
 - Kipf, T. N., & Welling, M. (2017). *Semi-Supervised Classification with Graph Convolutional Networks.* ICLR.  
 - SNAP Dataset: https://snap.stanford.edu/data/facebook-large-page-page-network.html
 
