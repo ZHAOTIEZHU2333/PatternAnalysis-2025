@@ -51,6 +51,23 @@ The model learns to predict the category of Facebook pages (nodes) based on both
 ---
 
 ## 5. Model Architecture
+
+### Model Overview
+The GCN model is a type of neural network designed to work with graph-structured data. Unlike CNNs that operate on grid-like data (such as images), GCNs work on graph data where each node aggregates information from its neighbors. The idea is that each node updates its feature representation by summing or averaging the features of its connected neighbors, allowing the model to capture the structural dependencies of the graph.
+
+The general GCN process can be summarized as:
+1. Each node receives input features and adjacency information.
+2. These inputs are propagated through multiple graph convolution layers.
+3. Each layer aggregates neighbor information and applies nonlinear activation (e.g., ReLU).
+4. After several layers, node embeddings encode both their own features and the surrounding graph structure.
+
+![](figs/GCN_overview.png)
+
+### Model Architecture Diagram
+Below is the schematic diagram of the GCN model used in this project.
+
+![](figs/GCN_model_structure.png)
+
 A **two-layer GCN** was implemented in `modules.py`:
 ```
 Input → GCNConv(4714→128) → ReLU → Dropout(0.5) → GCNConv(128→4)
