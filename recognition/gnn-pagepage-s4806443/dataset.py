@@ -68,3 +68,61 @@ def stratified_masks(
     assert not (train & val).any() and not (train & test).any() and not (val & test).any(), "Masks must be disjoint."
     assert (train | val | test).all(), "Every sample must belong to one of the splits."
     return train, val, test
+
+def load_pagepage(
+    data_dir: str,
+    device: torch.device,
+    *,
+    seed: int = 42,
+    train_ratio: float = 0.6,
+    val_ratio: float = 0.2,
+    ensure_undirected: bool = False,
+):
+    """
+    Return: x, y, edge_index, train_mask, val_mask, test_mask (all on `device`)
+    """
+    feats_path = os.path.join(data_dir, "feats.npy")
+    labels_path = os.path.join(data_dir, "labels.npy")
+    _must_exist(feats_path); _must_exist(labels_path)
+
+    x_np = np.load(feats_path).astype(np.float32, copy=False)
+    y_np = np.load(labels_path).astype(np.int64,   copy=False)
+    if x_np.ndim != 2:
+        raise ValueError(f"`feats.npy` must be 2-D [N, F], got {x_np.shape}")
+    if y_np.ndim != 1 or y_np.shape[0] != x_np.shape[0]:
+        raise ValueError("`labels.npy` must be [N] with the same N as feats.npy")
+
+    edge_index = load_edge_index(data_dir, device=torch.device("cpu"))
+
+    if ensure_undirected:
+        ei = edge_index.cpu().numpy().T           # [E, 2]
+        ei_rev = ei[:, ::-1]
+        both = np.concatenate([ei, ei_rev], axis=0)
+        both_view = both.view([('', both.dtype)] * 2)  # structured view for unique
+        uniq = np.unique(both_view, axis=0).view(both.dtype).reshape(-1, 2)
+        edge_index = torch.from_numpy(uniq.T.astype(np.int64, copy=False))
+
+    tm = os.path.join(data_dir, "train_mask.npy")
+    vm = os.path.join(data_dir, "val_mask.npy")
+    sm = os.path.join(data_dir, "test_mask.npy")
+
+    if all(os.path.exists(p) for p in (tm, vm, sm)):
+        train_mask_np = np.load(tm).astype(bool, copy=False)
+        val_mask_np   = np.load(vm).astype(bool, copy=False)
+        test_mask_np  = np.load(sm).astype(bool, copy=False)
+        for m in (train_mask_np, val_mask_np, test_mask_np):
+            if m.shape != (x_np.shape[0],):
+                raise ValueError("Saved mask shapes must all be [N].")
+    else:
+        train_mask_np, val_mask_np, test_mask_np = stratified_masks(
+            y_np, train_ratio=train_ratio, val_ratio=val_ratio, seed=seed
+        )
+
+    x = torch.from_numpy(x_np).to(device)
+    y = torch.from_numpy(y_np).to(device)
+    edge_index = edge_index.to(device)
+    train_mask = torch.from_numpy(train_mask_np).to(device)
+    val_mask   = torch.from_numpy(val_mask_np).to(device)
+    test_mask  = torch.from_numpy(test_mask_np).to(device)
+
+    return x, y, edge_index, train_mask, val_mask, test_mask
